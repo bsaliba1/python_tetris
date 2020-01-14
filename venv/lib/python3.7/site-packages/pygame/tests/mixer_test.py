@@ -37,6 +37,13 @@ CONFIG = {'frequency' : 22050, 'size' : -16, 'channels' : 2} # base config
 if pygame.get_sdl_version()[0] >= 2:
     CONFIG = {'frequency' : 44100, 'size' : 32, 'channels' : 2} # base config
 
+
+class InvalidBool(object):
+    """To help test invalid bool values."""
+    __nonzero__ = None
+    __bool__ = None
+
+
 ############################## MODULE LEVEL TESTS ##############################
 
 class MixerModuleTest(unittest.TestCase):
@@ -70,10 +77,10 @@ class MixerModuleTest(unittest.TestCase):
     def test_pre_init__zero_values(self):
         # Ensure that argument values of 0 are replaced with
         # default values. No way to check buffer size though.
-        mixer.pre_init(44100, -8, 1)  # Non default values
+        mixer.pre_init(22050, -8, 1)  # Non default values
         mixer.pre_init(0, 0, 0)       # Should reset to default values
         mixer.init()
-        self.assertEqual(mixer.get_init(), (22050, -16, 2))
+        self.assertEqual(mixer.get_init(), (44100, -16, 2))
 
     def test_init__zero_values(self):
         # Ensure that argument values of 0 are replaced with
@@ -123,6 +130,8 @@ class MixerModuleTest(unittest.TestCase):
         mixer.quit()
         self.assertRaises(pygame.error, mixer.get_num_channels)
 
+    # TODO: FIXME: appveyor fails here sometimes.
+    @unittest.expectedFailure
     def test_sound_args(self):
         def get_bytes(snd):
             return snd.get_raw()
@@ -136,7 +145,9 @@ class MixerModuleTest(unittest.TestCase):
         self.assertTrue(snd.get_length() > 0.5)
         snd_bytes = get_bytes(snd)
         self.assertTrue(len(snd_bytes) > 1000)
+
         self.assertEqual(get_bytes(mixer.Sound(wave_path)), snd_bytes)
+
         self.assertEqual(get_bytes(mixer.Sound(file=uwave_path)), snd_bytes)
         self.assertEqual(get_bytes(mixer.Sound(uwave_path)), snd_bytes)
         arg_emsg = 'Sound takes either 1 positional or 1 keyword argument'
@@ -540,6 +551,69 @@ class MixerModuleTest(unittest.TestCase):
           # This will resume all active sound channels after they have been paused.
 
         self.fail()
+
+    def test_get_sdl_mixer_version(self):
+        """Ensures get_sdl_mixer_version works correctly with no args."""
+        expected_length = 3
+        expected_type = tuple
+        expected_item_type = int
+
+        version = pygame.mixer.get_sdl_mixer_version()
+
+        self.assertIsInstance(version, expected_type)
+        self.assertEqual(len(version), expected_length)
+
+        for item in version:
+            self.assertIsInstance(item, expected_item_type)
+
+    def test_get_sdl_mixer_version__args(self):
+        """Ensures get_sdl_mixer_version works correctly using args."""
+        expected_length = 3
+        expected_type = tuple
+        expected_item_type = int
+
+        for value in (True, False):
+            version = pygame.mixer.get_sdl_mixer_version(value)
+
+            self.assertIsInstance(version, expected_type)
+            self.assertEqual(len(version), expected_length)
+
+            for item in version:
+                self.assertIsInstance(item, expected_item_type)
+
+    def test_get_sdl_mixer_version__kwargs(self):
+        """Ensures get_sdl_mixer_version works correctly using kwargs."""
+        expected_length = 3
+        expected_type = tuple
+        expected_item_type = int
+
+        for value in (True, False):
+            version = pygame.mixer.get_sdl_mixer_version(linked=value)
+
+            self.assertIsInstance(version, expected_type)
+            self.assertEqual(len(version), expected_length)
+
+            for item in version:
+                self.assertIsInstance(item, expected_item_type)
+
+    def test_get_sdl_mixer_version__invalid_args_kwargs(self):
+        """Ensures get_sdl_mixer_version handles invalid args and kwargs."""
+        invalid_bool = InvalidBool()
+
+        with self.assertRaises(TypeError):
+            version = pygame.mixer.get_sdl_mixer_version(invalid_bool)
+
+        with self.assertRaises(TypeError):
+            version = pygame.mixer.get_sdl_mixer_version(linked=invalid_bool)
+
+    def test_get_sdl_mixer_version__linked_equals_compiled(self):
+        """Ensures get_sdl_mixer_version's linked/compiled versions are equal.
+        """
+        linked_version = pygame.mixer.get_sdl_mixer_version(linked=True)
+        complied_version = pygame.mixer.get_sdl_mixer_version(linked=False)
+
+        self.assertTupleEqual(linked_version, complied_version)
+
 
 ############################## CHANNEL CLASS TESTS #############################
 
