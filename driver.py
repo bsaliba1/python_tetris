@@ -28,6 +28,8 @@ red = (255, 0, 0,)
 green = (0, 255, 0)
 blue = (0, 0, 255)
 
+grey = (0, 0, 0)
+
 play_width = 300  # meaning 300 // 10 = 30 width per block
 play_height = 600  # meaning 600 // 20 = 20 height per block
 block_size = 30
@@ -159,6 +161,14 @@ class MenuButton:
     def blit_button(self, surface):
         surface.blit(self.button, (self.x, self.y))
 
+    def hover_check(self, surface, mouse_position):
+        if self.x < mouse_position[0] < self.x + self.w and self.y < mouse_position[1] < self.y + self.h:
+            self.button.fill(grey)
+        else:
+            self.button.fill(grey)
+
+        self.blit_button(surface)
+
 
 class Menu:
     def __init__(self, labels=None):
@@ -168,7 +178,7 @@ class Menu:
 
         # Vars
         self.buttons = {}  # dictionary to access all menu button objects
-        self.m_width, self.m_height = self.dimensions = (600, 700)
+        self.m_width, self.m_height = self.dimensions = (s_width, s_height)
         self.menu = pygame.Surface(self.dimensions)
         self.button_gap = 50  # gap between each button
         self.num_buttons = len(labels)
@@ -178,13 +188,19 @@ class Menu:
         label_i = 0
         button_h = (self.m_height - (self.num_buttons + 1) * self.button_gap) / self.num_buttons
         for i in range(self.num_buttons):
-            self.buttons[labels[label_i]] = MenuButton(50, position, self.m_width-100, button_h, labels[label_i])
+            self.buttons[labels[label_i]] = MenuButton(50, position, self.m_width - 100, button_h, labels[label_i])
             self.buttons[labels[label_i]].blit_button(self.menu)
             position += button_h + 50
             label_i += 1
 
     def blit_menu(self, surface, position):
         surface.blit(self.menu, position)
+
+    def hover_check(self, surface, mouse_position):
+        for _, button in self.buttons.items():
+            self.menu.fill(blue)
+            button.hover_check(self.menu, mouse_position)
+            self.blit_menu(surface, (0, 0))
 
 
 class Piece(object):
@@ -194,35 +210,6 @@ class Piece(object):
         self.shape = shape
         self.color = shape_colors[shapes.index(shape)]
         self.rotation = 0
-
-
-def create_grid(locked_positions={}):
-    GRID_NUM_ROWS = 20
-    GRID_NUM_COLS = 10
-    grid = [[(0, 0, 0) for _ in range(GRID_NUM_COLS)] for _ in range(GRID_NUM_ROWS)]
-
-    for i in range(len(grid)):
-        for j in range(len(grid[i])):
-            if (j, i) in locked_positions:
-                c = locked_positions[(j, i)]
-                grid[i][j] = c
-    return grid
-
-
-def convert_shape_format(shape):
-    pass
-
-
-def valid_space(shape, grid):
-    pass
-
-
-def check_lost(positions):
-    pass
-
-
-def get_shape():
-    return Piece(5, 0, random.choice(shapes))
 
 
 def draw_text_middle(text, size, color, surface):
@@ -241,29 +228,14 @@ def draw_grid(surface, row, col):
     surface.blit(label, top_left_x + play_width / 2 - (label.get_width() / 2, 30))
 
 
-def clear_rows(grid, locked):
-    pass
-
-
-def draw_next_shape(shape, surface):
-    pass
-
-
-def draw_window(surface):
-    pass
-
-
-def game():
-    pass
-
-
 def main_menu():
     win = pygame.display.set_mode((s_width, s_height))
     pygame.display.set_caption('Tetris')
     win.fill(white)
 
     menu = Menu()
-    menu.blit_menu(win, (50, 50))
+    menu.blit_menu(win, (0, 0))
+    clock = pygame.time.Clock()
 
     pygame.display.flip()
 
@@ -273,6 +245,11 @@ def main_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+        mouse_pos = pygame.mouse.get_pos()
+        menu.hover_check(win, mouse_pos)
+        pygame.display.update()
+        clock.tick(15)
+
     pygame.quit()
 
 

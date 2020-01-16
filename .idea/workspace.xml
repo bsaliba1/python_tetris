@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2cfe8dac-7b48-4585-ba30-89865dad5324" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/driver.py" beforeDir="false" afterPath="$PROJECT_DIR$/driver.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
